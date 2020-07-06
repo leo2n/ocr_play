@@ -1,10 +1,10 @@
 package handleImage
 
 import (
+	"github.com/h2non/filetype"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
 )
 
 var maxFileSize int64 = 10 << 20 // 10 * 1 * 1024 *1024, 1 << 10 = 1024, 单位byte
@@ -21,20 +21,23 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//userId := r.PostForm.Get("userId")
-	file, handler, err := r.FormFile("imgFile")
+	file, _, err := r.FormFile("imgFile")
 	if err != nil {
 		log.Println("获取文件失败!", err)
 		http.Error(w, "获取文件失败!", 400)
 		return
 	}
 	defer file.Close()
-	fileName := handler.Filename
-	// 获取后缀, 如果不是jpg || png, 返回错误信息
-	suffix := strings.Split(fileName, ".")[len(strings.Split(fileName, "."))-1]
-	if suffix != "jpg" && suffix != "png" {
-		http.Error(w, "support image type is: jpg || png", 403)
-		return
-	}
+	// 根据文件扩展名来判定是否是图片文件?
+	//fileName := handler.Filename
+	//// 获取后缀, 如果不是jpg || png, 返回错误信息
+	//suffix := strings.Split(fileName, ".")[len(strings.Split(fileName, "."))-1]
+	//if suffix != "jpg" && suffix != "png" {
+	//	http.Error(w, "support image type is: jpg || png", 403)
+	//	return
+	//}
+	// 根据filetype判断是否是图片文件?
+
 	//fmt.Printf("Uploaded File: %+v\n", handler.Filename)
 	//fmt.Printf("File Size: %+v bytes\n", handler.Size)
 	//fmt.Printf("MIME Header: %+v\n", handler.Header)
@@ -45,6 +48,20 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "将文件从io流转为bytes时出现错误", 500)
 		return
 	}
+	kind, err := filetype.Image(imgBytes)
+	log.Printf("%+v", kind)
+	if err != nil {
+		log.Printf("file detect error")
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	if kind.MIME.Value != "image/jpg" && kind.MIME.Value != "image/png" {
+		log.Printf("file type is not supported!")
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	// 将[]byte转为[]rune
 	runes, err := GetImageContent(imgBytes)
 	if err != nil {
 		log.Printf("%+v", err)
