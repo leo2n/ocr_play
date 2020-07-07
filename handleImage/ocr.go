@@ -1,10 +1,13 @@
 package handleImage
 
 import (
-	"github.com/h2non/filetype"
+	"github.com/segmentio/ksuid"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"teletraan/mysql"
+	"teletraan/public"
+	"time"
 )
 
 var maxFileSize int64 = 10 << 20 // 10 * 1 * 1024 *1024, 1 << 10 = 1024, 单位byte
@@ -20,7 +23,7 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "File Size can not bigger than 10 MB", 403)
 		return
 	}
-	//userId := r.PostForm.Get("userId")
+	userId := r.PostForm.Get("userId") // 没有的话默认是空字符串, 也是会写入到mysql中的哦  "" != null
 	file, _, err := r.FormFile("imgFile")
 	if err != nil {
 		log.Println("获取文件失败!", err)
@@ -36,7 +39,6 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 	//	http.Error(w, "support image type is: jpg || png", 403)
 	//	return
 	//}
-	// 根据filetype判断是否是图片文件?
 
 	//fmt.Printf("Uploaded File: %+v\n", handler.Filename)
 	//fmt.Printf("File Size: %+v bytes\n", handler.Size)
@@ -48,37 +50,82 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "将文件从io流转为bytes时出现错误", 500)
 		return
 	}
-	kind, err := filetype.Image(imgBytes)
-	log.Printf("%+v", kind)
-	if err != nil {
-		log.Printf("file detect error")
+	// 将图片保存在服务器上
+	err = public.SaveFileOnSpecificPath(imgBytes, ksuid.New().String())
+	if err!= nil {
+		log.Printf("save file error")
+	}
+	// 根据filetype判断是否是图片文件?
+	kind, err := detectFileTypeByBytes(imgBytes)
+	if err!=nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	if kind.MIME.Value != "image/jpg" && kind.MIME.Value != "image/png" {
-		log.Printf("file type is not supported!")
-		http.Error(w, err.Error(), 500)
+	if kind != "image/jpg" && kind != "image/png" {
+		http.Error(w, "file type not allowed", 500)
 		return
 	}
 
 	// 将[]byte转为[]rune
 	runes, err := GetImageContent(imgBytes)
 	if err != nil {
-		log.Printf("%+v", err)
+		log.Printf("%+v\n", err)
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	recognize := convertRunesToStrings(runes)
-	// 不管存在不存在userId, 都把它保存在Mysql中
-
+	recognize := public.ConvertRunesToStrings(runes)
+	// 不管存在不存在userId, 都把它保存在Mysql中, 保存的形式暂定为: id int, user_id varchar(128), result text, create_time timestamp ()
+	err = mysql.SaveResultToMysql(userId, string(runes), time.Now().Format("2006-01-02 15:04:05"))
+	if err!=nil {
+		log.Printf("Write data to mysql error: %s", err.Error())
+	}
 	// 把结果包装成json形式
 	ocrResponse := OCRresponse{
 		Code:    8001,
 		Msg:     "解析成功!",
 		Content: recognize,
-		Strings: string(runes),
+		//Strings: string(runes),
 	}
 	content, err := commonResp(ocrResponse)
+	if err != nil {
+		log.Printf("从结构体转bytes出错了", err)
+		http.Error(w, "从结构体转bytes出错了", 500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(content)
+	return
+}
+
+// 根据userId来获取OCR识别的历史记录
+func QueryOCR(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Request Method restrict POST", 405)
+		return
+	}
+
+	userIdList, ok := r.URL.Query()["userId"]
+	if !ok || len(userIdList) == 0 {
+		log.Printf("Url Param 'userId' is missing")
+		return
+	}
+	userId := userIdList[0]
+	log.Printf("userIdList is %s", userIdList)
+
+	QueryResult, err := mysql.QueryData(userId)
+	if err!=nil {
+		log.Printf("query %s error\n", userId)
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	// 将query结果转为json形式发送
+	queryResponse := Queryresponse{
+		Code:    8001,
+		Msg:     "解析成功!",
+		Content: QueryResult,
+		//Strings: string(runes),
+	}
+	content, err := commonResp(queryResponse)
 	if err != nil {
 		log.Printf("从结构体转bytes出错了", err)
 		http.Error(w, "从结构体转bytes出错了", 500)

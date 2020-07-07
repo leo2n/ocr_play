@@ -28,12 +28,3 @@ func GetImageContent(imageBytes []byte) ([]rune, error) {
 	log.Println("识别到的结果是: ", c)
 	return []rune(c), nil
 }
-
-//convert []rune to []string
-func convertRunesToStrings(r []rune) []string {
-	m := make([]string, 0, len(r))
-	for _, v := range r {
-		m = append(m, string(v))
-	}
-	return m
-}
