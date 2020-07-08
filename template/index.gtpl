@@ -19,7 +19,7 @@
   	<label for="isAgree">No</label>
   	<input type="radio" name="isAgree" value="no">
     <br><label>选择需要识别的语言, 目前系统默认支持(简体中文 chi_sim, 英文 eng, 日文 jpn), 如果需要多个一起识别, 请用';', 分隔,不要有空格. 例如: 一张图片中同时包含简体中文和日文 chi_sim;jpn</label>
-    <input type="text" name="wantRecognizeLans" value="chi_sim">
+    <input type="text" name="wantRecognizeLans">
     <br><input type="submit" value="开始上传">
     </form>
     <form action="http://localhost:4001/query" method="get">
