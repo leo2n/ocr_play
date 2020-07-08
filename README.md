@@ -8,6 +8,14 @@
     "github.com/otiai10/gosseract/v2"
     Mysql server 8.0
 
+## 准备工作
+准备了OCR基础库, 中文, 英文, 日语 (当然也可以自己添加别的啦~)
+在Ubuntu 18.04, 20.04上均可以正常运行
+
+    sudo apt install tesseract-ocr
+    sudo apt install libtesseract-dev
+    sudo apt install tesseract-ocr-chi-sim tesseract-ocr-chi-sim-vert tesseract-ocr-eng tesseract-ocr-jpn tesseract-ocr-jpn-vert
+    
 ## 实现功能
 
 1. 支持多语言, 比如: 有一张图片, 里面同时有中文, 英文, 日文, 可以一起检索, 一起输出
@@ -47,3 +55,10 @@
 
 提示: 服务器位于阿里云新加坡轻量应用服务器, 速度会较慢, 请耐心等待, 界面太丑了, 我会后续完善一下下😁
 
+[点击进入](http://fenr.men:4001/index)
+
+## 后续安排
+
+- [ ] 前端美化
+- [ ] Docker化
+ 
