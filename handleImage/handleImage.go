@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+
 func GetImageContent(imageBytes []byte) ([]rune, error) {
 	client := gosseract.NewClient()
 	defer client.Close()

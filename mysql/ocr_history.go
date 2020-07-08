@@ -22,8 +22,8 @@ func InitMysqlConn() *sql.DB {
 // conn 设置为全局变量, 方便复用, 初始化失败时, 服务不能启动
 var conn = InitMysqlConn()
 
-func SaveResultToMysql(userId string, content string, timeString string) error {
-	_, err := conn.Exec("INSERT INTO ocr_history (userId, result, time) VALUES (?, ?, ?)", userId, content, timeString)
+func SaveResultToMysql(userId string, content string, timeString string, path string) error {
+	_, err := conn.Exec("INSERT INTO ocr_history (userId, result, time, path) VALUES (?, ?, ?, ?)", userId, content, timeString, path)
 	if err != nil {
 		log.Printf("%+v insert error: %+v", conn, err)
 		return err

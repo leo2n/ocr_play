@@ -1,6 +1,7 @@
 package handleImage
 
 import (
+	"fmt"
 	"github.com/segmentio/ksuid"
 	"io/ioutil"
 	"log"
@@ -24,6 +25,15 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := r.PostForm.Get("userId") // 没有的话默认是空字符串, 也是会写入到mysql中的哦  "" != null
+	isAgreeUsStoreFile := r.PostForm.Get("isAgree") // "yes"是同意, "no"是抗议
+	wantRecognizeLans := r.PostForm.Get("wantRecognizeLans")
+
+	if isInSupportLanguagesRange(wantRecognizeLans) == false {
+		log.Printf("对不起, 传入的语言%s 不支持", wantRecognizeLans)
+		http.Error(w, fmt.Sprintf("对不起, 传入的语言%s 不支持", wantRecognizeLans), 400)
+		return
+	}
+
 	file, _, err := r.FormFile("imgFile")
 	if err != nil {
 		log.Println("获取文件失败!", err)
@@ -50,10 +60,14 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "将文件从io流转为bytes时出现错误", 500)
 		return
 	}
-	// 将图片保存在服务器上
-	err = public.SaveFileOnSpecificPath(imgBytes, ksuid.New().String())
-	if err!= nil {
-		log.Printf("save file error")
+	// 根据用户的选择, 是否将文件保存在服务器上
+	var fileStoreName string
+	if isAgreeUsStoreFile == "yes" {
+		fileStoreName = ksuid.New().String()
+		err = public.SaveFileOnSpecificPath(imgBytes, fileStoreName)
+		if err!= nil {
+			log.Printf("save file error")
+		}
 	}
 	// 根据filetype判断是否是图片文件?
 	kind, err := detectFileTypeByBytes(imgBytes)
@@ -75,7 +89,7 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 	}
 	recognize := public.ConvertRunesToStrings(runes)
 	// 不管存在不存在userId, 都把它保存在Mysql中, 保存的形式暂定为: id int, user_id varchar(128), result text, create_time timestamp ()
-	err = mysql.SaveResultToMysql(userId, string(runes), time.Now().Format("2006-01-02 15:04:05"))
+	err = mysql.SaveResultToMysql(userId, string(runes), time.Now().Format("2006-01-02 15:04:05"), fileStoreName)
 	if err!=nil {
 		log.Printf("Write data to mysql error: %s", err.Error())
 	}
