@@ -3,6 +3,7 @@ package public
 import (
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -31,4 +32,8 @@ func SaveFileOnSpecificPath(fileBytes []byte, fileName string) error {
 		return err
 	}
 	return nil
+}
+
+func FaviconHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "public/teletraan.ico")
 }

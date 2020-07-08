@@ -3,15 +3,29 @@ package handleImage
 import (
 	"fmt"
 	"github.com/segmentio/ksuid"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"teletraan/mysql"
 	"teletraan/public"
 	"time"
 )
 
 var maxFileSize int64 = 10 << 20 // 10 * 1 * 1024 *1024, 1 << 10 = 1024, 单位byte
+
+func Index(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		t, _ := template.ParseFiles("template/index.gtpl")
+		err := t.Execute(w, nil)
+		if err!=nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		return
+	}
+}
 
 // 处理用户上传的图片并返回OCR结果
 func OCR(w http.ResponseWriter, r *http.Request) {
@@ -24,10 +38,14 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "File Size can not bigger than 10 MB", 403)
 		return
 	}
-	userId := r.PostForm.Get("userId") // 没有的话默认是空字符串, 也是会写入到mysql中的哦  "" != null
+	userId := r.PostForm.Get("userId")              // 没有的话默认是空字符串, 也是会写入到mysql中的哦  "" != null
 	isAgreeUsStoreFile := r.PostForm.Get("isAgree") // "yes"是同意, "no"是抗议
 	wantRecognizeLans := r.PostForm.Get("wantRecognizeLans")
-
+	// language 默认为english
+	if wantRecognizeLans == "" {
+		wantRecognizeLans = defaultSupportLanguages
+	}
+	log.Printf("%+v 的lansList是:%s", r.RemoteAddr, wantRecognizeLans)
 	if isInSupportLanguagesRange(wantRecognizeLans) == false {
 		log.Printf("对不起, 传入的语言%s 不支持", wantRecognizeLans)
 		http.Error(w, fmt.Sprintf("对不起, 传入的语言%s 不支持", wantRecognizeLans), 400)
@@ -65,13 +83,13 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 	if isAgreeUsStoreFile == "yes" {
 		fileStoreName = ksuid.New().String()
 		err = public.SaveFileOnSpecificPath(imgBytes, fileStoreName)
-		if err!= nil {
+		if err != nil {
 			log.Printf("save file error")
 		}
 	}
 	// 根据filetype判断是否是图片文件?
 	kind, err := detectFileTypeByBytes(imgBytes)
-	if err!=nil {
+	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
@@ -81,7 +99,7 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 将[]byte转为[]rune
-	runes, err := GetImageContent(imgBytes)
+	runes, err := GetImageContent(imgBytes, strings.Split(wantRecognizeLans, ";"))
 	if err != nil {
 		log.Printf("%+v\n", err)
 		http.Error(w, err.Error(), 500)
@@ -90,7 +108,7 @@ func OCR(w http.ResponseWriter, r *http.Request) {
 	recognize := public.ConvertRunesToStrings(runes)
 	// 不管存在不存在userId, 都把它保存在Mysql中, 保存的形式暂定为: id int, user_id varchar(128), result text, create_time timestamp ()
 	err = mysql.SaveResultToMysql(userId, string(runes), time.Now().Format("2006-01-02 15:04:05"), fileStoreName)
-	if err!=nil {
+	if err != nil {
 		log.Printf("Write data to mysql error: %s", err.Error())
 	}
 	// 把结果包装成json形式
@@ -124,10 +142,9 @@ func QueryOCR(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := userIdList[0]
-	log.Printf("userIdList is %s", userIdList)
 
 	QueryResult, err := mysql.QueryData(userId)
-	if err!=nil {
+	if err != nil {
 		log.Printf("query %s error\n", userId)
 		http.Error(w, err.Error(), 500)
 		return

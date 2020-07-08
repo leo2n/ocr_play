@@ -5,8 +5,9 @@ import (
 	"log"
 )
 
+var defaultSupportLanguages = "eng;chi_sim;jpn"
 
-func GetImageContent(imageBytes []byte) ([]rune, error) {
+func GetImageContent(imageBytes []byte, lansList []string) ([]rune, error) {
 	client := gosseract.NewClient()
 	defer client.Close()
 
@@ -16,7 +17,7 @@ func GetImageContent(imageBytes []byte) ([]rune, error) {
 		return []rune{}, err
 	}
 
-	err = client.SetLanguage("eng", "chi_sim", "jpn")
+	err = client.SetLanguage(lansList...)
 	if err != nil {
 		log.Printf("传入的语言列表不受支持")
 		return []rune{}, err
