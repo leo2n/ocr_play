@@ -139,6 +139,7 @@ func QueryOCR(w http.ResponseWriter, r *http.Request) {
 	userIdList, ok := r.URL.Query()["userId"]
 	if !ok || len(userIdList) == 0 {
 		log.Printf("Url Param 'userId' is missing")
+		http.Error(w, "url param 'userId' is missing", 400)
 		return
 	}
 	userId := userIdList[0]
