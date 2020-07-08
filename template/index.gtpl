@@ -6,7 +6,7 @@
   <body>
     <form
       enctype="multipart/form-data"
-      action="http://localhost:4001/ocr"
+      action="/ocr"
       method="post">
 
       <label>上传图片</label>
@@ -22,7 +22,7 @@
     <input type="text" name="wantRecognizeLans">
     <br><input type="submit" value="开始上传">
     </form>
-    <form action="http://localhost:4001/query" method="get">
+    <form action="/query" method="get">
     <label>查询历史记录, 请输入你需要查询的UserId</label>
     <input type="text" name="userId">
     <input type="submit" value="开始查询">
