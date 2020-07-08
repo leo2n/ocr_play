@@ -38,7 +38,7 @@
     Content-Type: multipart/form-data
     ```
     imgFile: [file] binary // 非空
-    userId: userID string // 可选, 用户需要保存自己之前的记录, 
+    userId: userID string // 可选, 如果用户需要保存自己之前的记录, 就填写一下, 后续可以根据userId去查找自己之前的记录 
     isAgree: string // 可选
     wantRecognizeLans // 可选
     ```
@@ -50,7 +50,7 @@
     URL: /query
     
     ```
-    userId: string // 非空
+    userId: string // 可选
     ```
 
 ## 线上实验环境地址
