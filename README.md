@@ -55,9 +55,9 @@
 
 ## 线上实验环境地址
 
-提示: 服务器位于阿里云新加坡轻量应用服务器, 速度会较慢, 请耐心等待, 界面太丑了, 我会后续完善一下下😁
+提示: 服务器位于AWS Lightsail服务器, 速度会较慢, 请耐心等待, 界面太丑了, 我会后续完善一下下😁
 
-[点击进入](http://fenr.men:4001/index)
+[点击进入](http://node.fenr.men:8001)
 
 ## 后续安排
 
@@ -70,12 +70,18 @@
     1. MySQL 容器使用方法
         容器最好和数据相隔离, 所以采用容器挂载本地目录的方法
         ```shell script
-       #!/bin/bash
-       mkdir -p $HOME/docker/mysql/conf.d $HOME/docker/mysql/data
-       docker run -d --name mysqlOCR -p 3300:3306 -v /home/docker/mysql/conf.d:/etc/mysql/conf.d -v /home/leo/docker/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0.20
+        #!/bin/bash
+        mkdir -p $HOME/docker/mysql/conf.d $HOME/docker/mysql/data # 我自定义的, 这个随便改
+        docker run -d --name mysqlOCR -p 3300:3306 -v /home/docker/mysql/conf.d:/etc/mysql/conf.d -v /home/leo/docker/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0.20
+       
         ```
-       一般情况下, 
-        
-        
+       一般情况下, 需要进入容器自行运行init.sql脚本, 初始化数据库
+    2. app直接docker pull下来
+        ```shell script
+        #!/bin/bash
+        docker pull leo2n/ocrapp:0.91
+        mkdir -p $PWD/imageStore # 给容器内要保存的图片提供一个本地地址
+        docker run -d --name ocrapp -p 4001:4001 -v $PWD/imageStore:/usr/local/teletraan/imageStore leo2n/ocrapp:0.91
+        ```
     
 - [ ] 测试代码
