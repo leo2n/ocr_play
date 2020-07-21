@@ -7,8 +7,10 @@ import (
 	"teletraan/public"
 )
 
+var dataSource = "root:123456@tcp(172.17.0.3:3306)/db_play"
+
 func InitMysqlConn() *sql.DB {
-	db, err := sql.Open("mysql", "leo:123456@tcp(127.0.0.1:3306)/db_play")
+	db, err := sql.Open("mysql", dataSource)
 	if err != nil {
 		log.Fatalf("conn establish error\n")
 	}

@@ -1,6 +1,8 @@
+CREATE DATABASE IF NOT EXISTS db_play;
+
 USE db_play;
 
-DROP TABLE ocr_history;
+DROP TABLE IF EXISTS ocr_history;
 
 CREATE TABLE IF NOT EXISTS ocr_history (
     id INT AUTO_INCREMENT PRIMARY KEY NOT NULL , /* 必须和主键一起使用*/

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
   <head>
-    <title>Teletraan file upload demo</title>
+    <title>Teletraan File Upload And OCR</title>
   </head>
   <body>
     <form

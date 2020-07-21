@@ -62,5 +62,20 @@
 ## 后续安排
 
 - [ ] 前端美化
-- [ ] Docker化
+- [x] Docker化
+
+    Docker 使用指南
+    
+    根据数据和应用互相隔离的原则, 使用两个容器, 一个mysql容器, 另外一个则是应用容器
+    1. MySQL 容器使用方法
+        容器最好和数据相隔离, 所以采用容器挂载本地目录的方法
+        ```shell script
+       #!/bin/bash
+       mkdir -p $HOME/docker/mysql/conf.d $HOME/docker/mysql/data
+       docker run -d --name mysqlOCR -p 3300:3306 -v /home/docker/mysql/conf.d:/etc/mysql/conf.d -v /home/leo/docker/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0.20
+        ```
+       一般情况下, 
+        
+        
+    
 - [ ] 测试代码
