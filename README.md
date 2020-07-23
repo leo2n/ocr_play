@@ -70,5 +70,6 @@
     使用方法如下:
     首先, 确保本机安装docker环境
     在./mysql/dockerScript/ 目录下, 运行runmysqlOCR.sh 脚本, 执行之后使用`docker inspect ocrmysql`拿到容器的地址, 然后填写到`mysql/mysql_config.json`文件的ip地址中, 容器暴露到本地的端口默认是3310, 觉得不爽在`mysql/dockerScript/runmysqlOCR.sh`中改成自己想要的就好了
-    在`./`下, 运行`build.sh`脚本, 即可在http://0.0.0.0:4001访问哟~
+    在`./`下, 运行`build.sh`脚本, 即可在本地`http://0.0.0.0:4001`访问哟~
+    
 - [ ] 测试代码
