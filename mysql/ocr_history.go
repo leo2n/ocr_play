@@ -2,12 +2,33 @@ package mysql
 
 import (
 	"database/sql"
+	"encoding/json"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"os"
 	"teletraan/public"
 )
 
-var dataSource = "root:123456@tcp(172.17.0.3:3306)/db_play"
+func ReadConfig(fileName string) string {
+	type MysqlConfig struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Ip string `json:"ip"`
+		Port string `json:"port"`
+	}
+	f, err := os.Open(fileName)
+	if err!=nil {
+		log.Fatalln(err)
+	}
+	var m MysqlConfig
+	err = json.NewDecoder(f).Decode(&m)
+	if err!=nil {
+		log.Fatalln(err)
+	}
+	return m.Username + ":" + m.Password + "@tcp(" + m.Ip + ":" + m.Port + ")/db_play"
+}
+
+var dataSource = ReadConfig("mysql/mysql_config.json")
 
 func InitMysqlConn() *sql.DB {
 	db, err := sql.Open("mysql", dataSource)

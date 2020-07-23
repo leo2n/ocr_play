@@ -3,13 +3,14 @@ MAINTAINER leo2n<ttxs.an@gmail.com>
 
 
 ENV MYPATH /usr/local
-CMD mkdir -p $MYPATH/teletraan
-WORKDIR $MYPATH/teletraan
-CMD mkdir -p imageStore
-EXPOSE 4001
+ENV TZ Asia/Shanghai
 
+WORKDIR $MYPATH/teletraan
+
+COPY mysql/mysql_config.json ./mysql/
 COPY teletraanBin .
-COPY public/* ./public/
+COPY public/teletraan.ico ./public/
 COPY template/* ./template/
 COPY README.md .
-CMD ./teletraanBin
+ENTRYPOINT ["/usr/local/teletraan/teletraanBin"]
+EXPOSE 4001
