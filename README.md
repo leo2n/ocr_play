@@ -67,21 +67,8 @@
     Docker 使用指南
     
     根据数据和应用互相隔离的原则, 使用两个容器, 一个mysql容器, 另外一个则是应用容器
-    1. MySQL 容器使用方法
-        容器最好和数据相隔离, 所以采用容器挂载本地目录的方法
-        ```shell script
-        #!/bin/bash
-        mkdir -p $HOME/docker/mysql/conf.d $HOME/docker/mysql/data # 我自定义的, 这个随便改
-        docker run -d --name mysqlOCR -p 3300:3306 -v /home/docker/mysql/conf.d:/etc/mysql/conf.d -v /home/leo/docker/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0.20
-       
-        ```
-       一般情况下, 需要进入容器自行运行init.sql脚本, 初始化数据库
-    2. app直接docker pull下来
-        ```shell script
-        #!/bin/bash
-        docker pull leo2n/ocrapp:0.91
-        mkdir -p $PWD/imageStore # 给容器内要保存的图片提供一个本地地址
-        docker run -d --name ocrapp -p 4001:4001 -v $PWD/imageStore:/usr/local/teletraan/imageStore leo2n/ocrapp:0.91
-        ```
-    
+    使用方法如下:
+    首先, 确保本机安装docker环境
+    在./mysql/dockerScript/ 目录下, 运行runmysqlOCR.sh 脚本, 执行之后使用`docker inspect ocrmysql`拿到容器的地址, 然后填写到`mysql/mysql_config.json`文件的ip地址中, 容器暴露到本地的端口默认是3310, 觉得不爽在`mysql/dockerScript/runmysqlOCR.sh`中改成自己想要的就好了
+    在`./`下, 运行`build.sh`脚本, 即可在http://0.0.0.0:4001访问哟~
 - [ ] 测试代码
