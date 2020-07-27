@@ -1,6 +1,6 @@
 {
   "username": "root",
   "password": "123456",
-  "ip": "172.18.0.2",
+  "ip": "ocrmysql",
   "port": "3306"
 }
